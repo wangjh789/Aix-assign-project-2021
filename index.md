@@ -3,6 +3,7 @@
 
 ### Members :
 2016003254/소프트웨어학과/고동현
+
 2016003690/소프트웨어학과/왕종휘 
 
 ### I. Proposal 
@@ -51,11 +52,11 @@ print(review_df['review'][0])
 <img width="1002" alt="스크린샷 2021-12-05 오후 5 28 46" src="https://user-images.githubusercontent.com/19744909/144739358-639810e9-efb8-4052-a67d-e06f893f6881.png">
 첫번째 리뷰는 위의 사진과 같이 HTML 형식에서 추출해 <br />태크가 존재하는 것을 볼 수 있습니다.
 
+
 ```
 import re
 
 review_df['review'] = review_df['review'].str.replace('<br />',' ')
-
 review_df['review'] = review_df['review'].apply(lambda x: re.sub("[^a-zA-Z]"," ",x))
 ```
 다음과 같이 태그와 영문이 아닌 숫자/특수문자는 공백으로 대체합니다.
@@ -70,6 +71,7 @@ X_train,X_test,y_train,y_test = train_test_split(feature_df,class_df,test_size=0
 ```
 모델은 학습하고 평가하는데 필요한 sentiment와 review 컬럼을 제외한 나머지 컬럼들을 제거합니다.
 그 후 데이터를 학습데이터는 70, 평가데이터는 30의 비율로 나눕니다.
+
 ```
 X_train.shape, X_test.shape
 ```
@@ -81,8 +83,50 @@ X_train.shape, X_test.shape
 ```
 CountVectorizer(stop_words='english',ngram_range=(1,2))
 ```
-사이킷런 sklearn.feature_extraction.text의 클래스 CountVectorizer를 통해 학습/평가에 불 필요한 스탑워드 제거를 수행합니다. stop_words 파라미터 'english'에 해당하는 단어는 아래의 링크에서 확인가능합니다.
-(https://www.ranks.nl/stopwords)
+사이킷런 sklearn.feature_extraction.text의 클래스 CountVectorizer를 통해 학습/평가에 불 필요한 스탑워드 제거를 수행합니다. stop_words 파라미터 'english'에 해당하는 단어는 다음의 링크에서 확인가능합니다. (https://www.ranks.nl/stopwords)
+
+BOW 방식의 피처 벡터화는 단어의 순서를 고려하지 않기 때문에 문장 내에서 단어의 문맥적인 의미가 무시됩니다. 이러한 단점을 보완하기위해 ngram_range 파라미터를 이용합니다. 위와 같이 (1,2)로 설정하면 토큰화된 단어를 1개씩, 그리고 순서대로 2개씩 묶어서 피처로 추출합니다.
+
+##### 1.3 ML모델 수립 및 학습/예측 평가
+
+```
+from sklearn.linear_model import LogisticRegression
+
+LogisticRegression(C=10)
+```
+ML모델은 사이킷런 sklearn.linear_model의 클래스 LogisticRegression를 사용합니다.
+
+파라미터 C는 coefficient를 뜻합니다. C가 높을수록 학습을 더욱 복잡하게, 다시말해 학습데이터에 대해 적합하게 학습을 수행합니다. 그렇기 때문에 C가 너무 높으면 평가 데이터셋에 성능이 좋지 않은 과적합 문제를 야기할 수 있습니다. 
+
+```
+pipeline = Pipeline([
+    ('cnt_vect', CountVectorizer(stop_words='english',ngram_range=(1,2))),
+    ('lr_clf',LogisticRegression(C=10))
+])
+```
+평가 데이터를 적용할 때도 같은 과정을 거쳐야하므로, 피처 벡터화, ML모델 수립의 2가지 과정을 Pipline으로 하나로 통합해 사용하겠습니다.
+
+```
+pipeline.fit(X_train['review'],y_train)
+pred = pipeline.predict(X_test['review'])
+pred_probs = pipeline.predict_proba(X_test['review'])[:,1]
+```
+로지스틱회귀 모델을 학습시키고 성능을 평가하는 과정입니다. 
+
+predict()는 단순히 1,0 값을 반환하지만, predict_proba는 다음과 같이 확률을 반환하므로 ROC 곡선그래프와 roc_auc_score()로 적절한 threshold를 찾을 때에 유용합니다.
+<img width="980" alt="스크린샷 2021-12-05 오후 6 13 40" src="https://user-images.githubusercontent.com/19744909/144740650-9df9d86c-0ccb-4ec0-a96d-748bb69886d5.png">
+
+```
+print('예측 정확도: {0:.4f}\n ROC-AUC : {1:.4f}\n'.format(accuracy_score(y_test,pred),roc_auc_score(y_test,pred_probs[:,1])))
+```
+<img width="983" alt="스크린샷 2021-12-05 오후 6 27 11" src="https://user-images.githubusercontent.com/19744909/144741046-c9a63b17-b588-410e-8a49-8dfe07be0128.png">
+
+여기서 ROC-AUC가 의미하는 것은 결과를 얼마나 신뢰할 수 있는지를 의미합니다. TPR가 클수록 FPR이 작을수록 그래프의 아래면적(AUC)이 증가합니다.
+
+<img width="407" alt="스크린샷 2021-12-05 오후 6 18 35" src="https://user-images.githubusercontent.com/19744909/144741095-6ce40d89-115f-4327-9158-effac3527295.png">
+
+위 모델은 정확도가 84%, AUC 94%로 리뷰의 감성분석에 쓸만하고, 신뢰할 만한 모델이라고 볼 수 있습니다.
+
 
 
 
