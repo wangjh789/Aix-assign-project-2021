@@ -5,12 +5,12 @@
 2016003254/소프트웨어학과/고동현
 2016003690/소프트웨어학과/왕종휘 
 
-### I. Proposal 
+### Proposal 
  인터넷의 발달과 소셜미디어의 활성화로 대중이 정보를 소비하는 주체에서 생산하는 주체로 변화하기 시작했습니다. 온라인 커머스 사이트를 통해 상품을 구매한 고객들은 구매 후기, 또는 상품평을 통해 자신들의 구매 경험을 공유합니다. 개인의 주관이 반영된 상품평은 브랜드, 가격 등 객관적 정보 못지않게 사람들의 구매 의사결정에 영향을 줍니다. 이와 같이 주관적인 데이터를 수집하고 분석해 마케팅, 고객관리에 사용한다면 상품의 구매율과 브랜드에 대한 가치를 향상시키는 데에 도움을 줄 수 있을 거라 생각합니다.
  
 우선 레퍼런스가 많은 영문으로 자연어 처리를 진행하면서 NLP에 대한 전반적 과정과 방법을 익히고, 한글과 영문의 구조적 차이를 인지하면서 한글에 대한 자연어 처리를 진행합니다.
  
-### II. Datasets
+### Datasets
 Bag of Words Meets Bags of Popcorn
 -	id: 각 데이터의 id
 -	sentiment : review의 Sentiment 결과 값 (1:긍정 0:부정)
@@ -22,9 +22,9 @@ Bag of Words Meets Bags of Popcorn
 -	document : 영화평의 텍스트
 -	label : document 의 Sentiment 결과 값 (1:긍정 0:부정)
 
-### III. Methodology 
+### Methodology 
 텍스트를 머신러닝에 적용하기 위해선 비정형 텍스트 데이터를 피처 형태로 추출하고 추출된 피처에 의미 있는 값을 부여하는 피처 벡터화를 거쳐야 합니다. 피처 벡터화에는 대표적으로 Bag Of Words, Word2Vec 이렇게 두가지 방법이 있습니다. 여기선 사이킷런에 내장된 BOW 방식을 이용합니다.
-#### 순서
+#### 자연어 처리 순서
 1.	텍스트 사전 준비 : 텍스트를 피처로 만들기 전에 클렌징, 토큰화, 스탑워드 제거를 통해 텍스트 정규화 작업을 수행합니다.
 2.	피처 벡터화 : 가공된 텍스트에 피처를 추출하고 여기에 벡터값을 할당합니다. 
  - Count 기반 벡터화 : 각 문서에서 해당 단어가 나타나는 횟수가 높을수록 중요한 단어로 인식함.
@@ -37,7 +37,7 @@ Bag of Words Meets Bags of Popcorn
 평가는 사이킷런의 accuracy_score()로 정확도를 측정합니다. 추가적으로 모델이 이진분류를 수행하기 때문에 roc_auc_score()도 진행하겠습니다.
 
 
-#### 1.영문 자연어 처리
+### 1.영문 자연어 처리
 캐글에서 가져온 Bag of Words Meets Bags of Popcorn 로 진행합니다.
 (https://www.kaggle.com/c/word2vec-nlp-tutorial)
 
@@ -61,6 +61,7 @@ review_df['review'] = review_df['review'].apply(lambda x: re.sub("[^a-zA-Z]"," "
 ```
 다음과 같이 태그와 영문이 아닌 숫자/특수문자는 공백으로 대체합니다.
 
+
 ```
 from sklearn.model_selection import train_test_split
 
@@ -71,6 +72,7 @@ X_train,X_test,y_train,y_test = train_test_split(feature_df,class_df,test_size=0
 ```
 모델은 학습하고 평가하는데 필요한 sentiment와 review 컬럼을 제외한 나머지 컬럼들을 제거합니다.
 그 후 데이터를 학습데이터는 70, 평가데이터는 30의 비율로 나눕니다.
+
 
 ```
 X_train.shape, X_test.shape
@@ -98,13 +100,15 @@ ML모델은 사이킷런 sklearn.linear_model의 클래스 LogisticRegression를
 
 파라미터 C는 coefficient를 뜻합니다. C가 높을수록 학습을 더욱 복잡하게, 다시말해 학습데이터에 대해 적합하게 학습을 수행합니다. 그렇기 때문에 C가 너무 높으면 평가 데이터셋에 성능이 좋지 않은 과적합 문제를 야기할 수 있습니다. 
 
+
 ```
 pipeline = Pipeline([
     ('cnt_vect', CountVectorizer(stop_words='english',ngram_range=(1,2))),
     ('lr_clf',LogisticRegression(C=10))
 ])
 ```
-평가 데이터를 적용할 때도 같은 과정을 거쳐야하므로, 피처 벡터화, ML모델 수립의 2가지 과정을 Pipline으로 하나로 통합해 사용하겠습니다.
+평가 데이터를 모델에 적용할 때도 같은 과정을 거쳐야하므로, 피처 벡터화, ML모델 수립의 2가지 과정을 Pipline으로 하나로 통합해 사용하겠습니다.
+
 
 ```
 pipeline.fit(X_train['review'],y_train)
@@ -113,8 +117,10 @@ pred_probs = pipeline.predict_proba(X_test['review'])[:,1]
 ```
 로지스틱회귀 모델을 학습시키고 성능을 평가하는 과정입니다. 
 
-predict()는 단순히 1,0 값을 반환하지만, predict_proba는 다음과 같이 확률을 반환하므로 ROC 곡선그래프와 roc_auc_score()로 적절한 threshold를 찾을 때에 유용합니다.
+
 <img width="980" alt="스크린샷 2021-12-05 오후 6 13 40" src="https://user-images.githubusercontent.com/19744909/144740650-9df9d86c-0ccb-4ec0-a96d-748bb69886d5.png">
+predict()는 단순히 1,0 값을 반환하지만, predict_proba는 다음과 같이 확률을 반환하므로 ROC 곡선그래프와 roc_auc_score()로 적절한 threshold를 찾을 때에 유용합니다.
+
 
 ```
 print('예측 정확도: {0:.4f}\n ROC-AUC : {1:.4f}\n'.format(accuracy_score(y_test,pred),roc_auc_score(y_test,pred_probs[:,1])))
@@ -123,11 +129,13 @@ print('예측 정확도: {0:.4f}\n ROC-AUC : {1:.4f}\n'.format(accuracy_score(y_
 
 여기서 ROC-AUC가 의미하는 것은 결과를 얼마나 신뢰할 수 있는지를 의미합니다. TPR가 클수록 FPR이 작을수록 그래프의 아래면적(AUC)이 증가합니다.
 
+
 <img width="407" alt="스크린샷 2021-12-05 오후 6 18 35" src="https://user-images.githubusercontent.com/19744909/144741095-6ce40d89-115f-4327-9158-effac3527295.png">
 
 위 모델은 정확도가 84%, AUC 94%로 리뷰의 감성분석에 쓸만하고, 신뢰할 만한 모델이라고 볼 수 있습니다.
 
-#### 2.한글 자연어 처리
+
+### 2.한글 자연어 처리
 한글은 띄어쓰기와 조사 때문에 영문보다 자연어 처리가 어렵습니다. 잘못된 띄어쓰기는 단어의 의미를 왜곡시키거나 없는 단어로 인식하게 합니다. 또 한글의 조사는 경우의 수가 많아 전처리 시 제거하기가 어렵습니다.
 그렇기에 KoNLPy를 이용해 한글의 피처 백터화를 수행합니다.
 
@@ -165,6 +173,7 @@ def tw_tokenizer(text):
 ```
 위 함수는 토큰화를 담당하는 함수입니다. 
 
+
 ```
 print(otk.morphs("아빠가 방에 들어가신다"))
 print(otk.morphs("아빠가방에 들어가신다"))
@@ -181,6 +190,7 @@ tfidf_vect.fit(train_df['document'])
 tfidf_matrix_train = tfidf_vect.transform(train_df['document'])
 ```
 BOW의 TF-IDF방식의 피처 벡터화를 수행합니다. TfidfVectorizer를 이용해 TF-IDF 피처 모델을 생성합니다. tokenizer 파라미터는 별도의 커스텀함수를 이용시 적용합니다. 한글의 토큰화를 위해 구현한 tw_tokenizer()함수를 넣습니다.
+
 min_df와 max_df는 각각 빈도수가 너무 낮은, 너무 높은 단어를 제외하기 위한 파라미터입니다. 너무 낮은 빈도수를 가진 단어는 크게 중요하지 않은 단어이고, 너무 높은 빈도수를 가진 단어는 스톱워드와 비슷한 문법적인 특성으로 반복적인 단어일 가능성이 높습니다.
 
 ```
@@ -189,16 +199,18 @@ tfidf_vect.vocabulary_.items()
 <img width="992" alt="스크린샷 2021-12-05 오후 7 37 38" src="https://user-images.githubusercontent.com/19744909/144743088-212cd453-35e2-4ba9-aa2c-e1b8a0f70e23.png">
 피처 모델이 학습한 단어 사전입니다.
 
+
 ```
 print(tfidf_matrix_train)
 ```
 <img width="993" alt="스크린샷 2021-12-05 오후 7 42 19" src="https://user-images.githubusercontent.com/19744909/144743235-daedb38c-b97a-42e8-831f-d652680e5081.png">
 학습 데이터의 (document_id,tokne_id) tf-idf Score 를 볼 수 있습니다.
 
+
 ```
 tfidf_matrix_test = tfidf_vect.transform(test_df['document'])
 ```
-학습 데이터로 학습된 TF-IDF 피처 모델을 이용해 평가 데이터셋 또한 '(document_id,tokne_id) tf-idf Score'의 형태로 만듭니다.
+학습 데이터로 학습된 TF-IDF 피처 모델을 이용해 평가 데이터셋 또한 '(document_id,tokne_id) tf-idf Score'의 형태로 반환됩니다.
 
 
 ##### 2.3 ML모델 수립 및 학습/예측 평가
@@ -209,5 +221,26 @@ preds = lg_clf.predict(tfidf_matrix_test)
 pred_probs = lg_clf.predict_proba(tfidf_matrix_test)
 ```
 ML모델로 로지스틱회귀 모델을 선택했습니다. 그 후 로지스틱회귀 모델에 학습데이터 셋으로 학습시키고 평가 데이터 셋으로 평가합니다.
+
+
+```
+print('Logistic Regression 정확도 : {0:.4f}\n ROC-AUC : {1:.4f}\n'.format(accuracy_score(test_df['label'],preds),roc_auc_score(test_df['label'],pred_probs[:,1])))
+```
+<img width="1000" alt="스크린샷 2021-12-05 오후 7 59 50" src="https://user-images.githubusercontent.com/19744909/144743771-aaf7dda8-1ba8-43b7-979d-d0737dabc10d.png">
+<img width="391" alt="스크린샷 2021-12-05 오후 8 00 26" src="https://user-images.githubusercontent.com/19744909/144743785-253b1b59-52c0-4311-ac18-988e9f556026.png">
+
+위 모델은 86%의 정확도와 93%의 신뢰도를 가집니다.
+
+### Related Work
+
+- BOW 방식의 피처 벡터화 (https://pearlluck.tistory.com/680)
+- ROC-AUC (https://dsdoris.medium.com/roc-curve%EC%99%80-auc-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0-126978d80a9e)
+- 이진분류와 ROC곡선 그래프 (https://bskyvision.com/1165)
+- KoNLPy의 morphs() (https://konlpy-ko.readthedocs.io/ko/v0.4.3/api/konlpy.tag/)
+- TfidfVectorizer 토큰화 원리와 파라미터 (https://chan-lab.tistory.com/27)
+- 영문의 stopwords (https://www.ranks.nl/stopwords)
+
+
+
 
 
