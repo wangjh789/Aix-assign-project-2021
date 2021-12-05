@@ -50,7 +50,7 @@ print(review_df['review'][0])
 <img width="506" alt="스크린샷 2021-12-05 오후 5 27 59" src="https://user-images.githubusercontent.com/19744909/144739335-bf1c50d2-b0e4-4b94-a433-c492d0cd55f0.png">
 <img width="1002" alt="스크린샷 2021-12-05 오후 5 28 46" src="https://user-images.githubusercontent.com/19744909/144739358-639810e9-efb8-4052-a67d-e06f893f6881.png">
 
-위의 사진과 같이 reivew는 HTML 형식에서 추출해 <br />태크가 존재하는 것을 볼 수 있습니다.
+위의 사진과 같이 reivew는 HTML 형식에서 추출해 <br />태그가 존재하는 것을 볼 수 있습니다.
 
 
 ```
@@ -204,13 +204,13 @@ tfidf_vect.vocabulary_.items()
 print(tfidf_matrix_train)
 ```
 <img width="993" alt="스크린샷 2021-12-05 오후 7 42 19" src="https://user-images.githubusercontent.com/19744909/144743235-daedb38c-b97a-42e8-831f-d652680e5081.png">
-학습 데이터의 (document_id,tokne_id) tf-idf Score 를 볼 수 있습니다.
+학습 데이터의 (document_id,token_id) tf-idf Score 를 볼 수 있습니다.
 
 
 ```
 tfidf_matrix_test = tfidf_vect.transform(test_df['document'])
 ```
-학습 데이터로 학습된 TF-IDF 피처 모델을 이용해 평가 데이터셋 또한 '(document_id,tokne_id) tf-idf Score'의 형태로 반환됩니다.
+학습 데이터로 학습된 TF-IDF 피처 모델을 이용해 평가 데이터셋 또한 '(document_id,token_id) tf-idf Score'의 형태로 반환됩니다.
 
 
 ##### 2.3 ML모델 수립 및 학습/예측 평가
