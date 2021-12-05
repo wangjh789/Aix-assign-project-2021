@@ -34,6 +34,55 @@ Bag of Words Meets Bags of Popcorn
 영문 자연어 처리는 사이킷런에 내장된 BOW 방식의 피처 벡터화를 진행 후, 로지스틱 회귀 모델로 지도학습을 수행합니다. 
 한글 자연어 처리도 영문과 동일하게 처리하되 피처 벡터화의 토큰화 작업은 KoNLPy 한글 형태소 패키지의 Twitter 클래스를 이용합니다.
 
-### 평가
-사이킷런의 accuracy_score()로 정확도를 측정합니다. 추가적으로 모델이 이진분류를 수행하기 때문에 roc_auc_score()를 통해 성능을 평가합니다.
+평가는 사이킷런의 accuracy_score()로 정확도를 측정합니다. 추가적으로 모델이 이진분류를 수행하기 때문에 roc_auc_score()도 진행하겠습니다.
+
+
+#### 1.영문 자연어 처리
+캐글에서 가져온 Bag of Words Meets Bags of Popcorn 로 진행합니다.
+(https://www.kaggle.com/c/word2vec-nlp-tutorial)
+
+##### 1.1 텍스트 사전 준비
+```
+review_df = pd.read_csv('./labeledTrainData.tsv',header=0,sep='\t',quoting=3)
+review_df.head(10)
+print(review_df['review'][0])
+```
+<img width="506" alt="스크린샷 2021-12-05 오후 5 27 59" src="https://user-images.githubusercontent.com/19744909/144739335-bf1c50d2-b0e4-4b94-a433-c492d0cd55f0.png">
+<img width="1002" alt="스크린샷 2021-12-05 오후 5 28 46" src="https://user-images.githubusercontent.com/19744909/144739358-639810e9-efb8-4052-a67d-e06f893f6881.png">
+첫번째 리뷰는 위의 사진과 같이 HTML 형식에서 추출해 <br />태크가 존재하는 것을 볼 수 있습니다.
+
+```
+import re
+
+review_df['review'] = review_df['review'].str.replace('<br />',' ')
+
+review_df['review'] = review_df['review'].apply(lambda x: re.sub("[^a-zA-Z]"," ",x))
+```
+다음과 같이 태그와 영문이 아닌 숫자/특수문자는 공백으로 대체합니다.
+
+```
+from sklearn.model_selection import train_test_split
+
+class_df = review_df['sentiment']
+feature_df = review_df.drop(['id','sentiment'],axis=1,inplace=False)
+
+X_train,X_test,y_train,y_test = train_test_split(feature_df,class_df,test_size=0.3, random_state=100)
+```
+모델은 학습하고 평가하는데 필요한 sentiment와 review 컬럼을 제외한 나머지 컬럼들을 제거합니다.
+그 후 데이터를 학습데이터는 70, 평가데이터는 30의 비율로 나눕니다.
+```
+X_train.shape, X_test.shape
+```
+<img width="1008" alt="스크린샷 2021-12-05 오후 5 38 23" src="https://user-images.githubusercontent.com/19744909/144739642-2b17be47-dfe8-485c-8bd3-b0b7442b1efc.png">
+데이터 셋이 학습데이터 17500, 평가데이터 7500으로 나뉜 것을 확인 할 수 있습니다.
+
+##### 1.2 피처 벡터화
+
+```
+CountVectorizer(stop_words='english',ngram_range=(1,2))
+```
+사이킷런 sklearn.feature_extraction.text의 클래스 CountVectorizer를 통해 학습/평가에 불 필요한 스탑워드 제거를 수행합니다. stop_words 파라미터 'english'에 해당하는 단어는 아래의 링크에서 확인가능합니다.
+(https://www.ranks.nl/stopwords)
+
+
 
